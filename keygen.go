@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/iancoleman/strcase"
 	"github.com/minio/highwayhash"
 )
 
@@ -173,7 +172,7 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 		rt := rv.Type()
 		for i, l := 0, rv.NumField(); i < l; i++ {
 			f := rt.Field(i)
-			g.gen(rv.Field(i), append(keys, strcase.ToSnake(f.Name))...)
+			g.gen(rv.Field(i), append(keys, f.Name)...)
 		}
 	case reflect.Ptr:
 		rv.Set(reflect.New(rv.Type().Elem()))

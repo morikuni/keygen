@@ -109,45 +109,43 @@ type Object struct {
 func TestAny(t *testing.T) {
 	obj := *Any((*Object)(nil), "object").(*Object)
 
-	Equal(t, *Int("object", "int"), obj.Int)
-	Equal(t, uint32(*Uint("object", "uint")), obj.Uint)
-	Equal(t, *Float64("object", "float"), obj.Float)
-	Equal(t, *String("object", "string"), obj.String)
+	Equal(t, *Int("object", "Int"), obj.Int)
+	Equal(t, uint32(*Uint("object", "Uint")), obj.Uint)
+	Equal(t, *Float64("object", "Float"), obj.Float)
+	Equal(t, *String("object", "String"), obj.String)
 
 	Equal(t,
 		[5]int64{
-			*Int64("object", "array", "0"),
-			*Int64("object", "array", "1"),
-			*Int64("object", "array", "2"),
-			*Int64("object", "array", "3"),
-			*Int64("object", "array", "4"),
+			*Int64("object", "Array", "0"),
+			*Int64("object", "Array", "1"),
+			*Int64("object", "Array", "2"),
+			*Int64("object", "Array", "3"),
+			*Int64("object", "Array", "4"),
 		},
 		obj.Array,
 	)
 
-	Equal(t, *Length("object", "slice", "len"), len(obj.Slice)) // this value == 4
+	Equal(t, *Length("object", "Slice", "len"), len(obj.Slice)) // this value == 2
 	Equal(t,
 		[]bool{
-			*Bool("object", "slice", "0"),
-			*Bool("object", "slice", "1"),
-			*Bool("object", "slice", "2"),
-			*Bool("object", "slice", "3"),
+			*Bool("object", "Slice", "0"),
+			*Bool("object", "Slice", "1"),
 		},
 		obj.Slice,
 	)
 
-	Equal(t, *Bool("object", "struct", "bool_p"), *obj.Struct.BoolP)
-	Equal(t, *String("object", "struct", "string"), obj.Struct.String)
-	Equal(t, *Bool("object", "struct_p", "bool_p"), *obj.StructP.BoolP)
-	Equal(t, *String("object", "struct_p", "string"), obj.StructP.String)
+	Equal(t, *Bool("object", "Struct", "BoolP"), *obj.Struct.BoolP)
+	Equal(t, *String("object", "Struct", "String"), obj.Struct.String)
+	Equal(t, *Bool("object", "StructP", "BoolP"), *obj.StructP.BoolP)
+	Equal(t, *String("object", "StructP", "String"), obj.StructP.String)
 
-	Equal(t, *Length("object", "map", "len"), len(obj.Map)) // this value == 4
+	Equal(t, *Length("object", "Map", "len"), len(obj.Map)) // this value == 4
 	Equal(t,
 		map[string]int64{
-			*String("object", "map", "0", "key"): *Int64("object", "map", "0", "value"),
-			*String("object", "map", "1", "key"): *Int64("object", "map", "1", "value"),
-			*String("object", "map", "2", "key"): *Int64("object", "map", "2", "value"),
-			*String("object", "map", "3", "key"): *Int64("object", "map", "3", "value"),
+			*String("object", "Map", "0", "key"): *Int64("object", "Map", "0", "value"),
+			*String("object", "Map", "1", "key"): *Int64("object", "Map", "1", "value"),
+			*String("object", "Map", "2", "key"): *Int64("object", "Map", "2", "value"),
+			*String("object", "Map", "3", "key"): *Int64("object", "Map", "3", "value"),
 		},
 		obj.Map,
 	)

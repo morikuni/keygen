@@ -70,13 +70,8 @@ func (g *Generator) Uint64(keys ...string) *uint64 {
 	return &v
 }
 
-func (g *Generator) NatualNumber(keys ...string) *int64 {
-	v := *Int64(keys...) & math.MaxInt64
-	return &v
-}
-
 func (g *Generator) Length(keys ...string) *int {
-	v := int(*g.NatualNumber(keys...)%5 + 1)
+	v := int(*g.Uint(keys...)%5 + 1)
 	return &v
 }
 
@@ -106,16 +101,16 @@ func (g *Generator) Float32(keys ...string) *float32 {
 // Time returns random time between 2009-11-10 23:00:00 and 2030-01-01 00:00:00.
 func (g *Generator) Time(keys ...string) *time.Time {
 	t := time.Unix(
-		*NatualNumber(keys...)%int64(176545*time.Hour/time.Second)+1257894000,
-		*NatualNumber(keys...)%int64(time.Second),
+		int64(*Uint64(keys...)%uint64(176545*time.Hour/time.Second)+1257894000),
+		int64(*Uint64(keys...)%uint64(time.Second)),
 	)
 	return &t
 }
 
 func (g *Generator) URL(keys ...string) *url.URL {
 	u, err := url.Parse(fmt.Sprintf("%s://%s/%s",
-		[]string{"https", "http"}[*NatualNumber(keys...)%2],
-		*String(append(keys, "host")...)+[]string{".com", ".org", ".net"}[*NatualNumber(keys...)%3],
+		[]string{"https", "http"}[*Uint(keys...)%2],
+		*String(append(keys, "host")...)+[]string{".com", ".org", ".net"}[*Uint(keys...)%3],
 		*String(append(keys, "path")...),
 	))
 	if err != nil {
@@ -155,7 +150,7 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 			g.gen(rv.Index(i), append(keys, strconv.Itoa(i))...)
 		}
 	case reflect.Slice:
-		l := int(*g.Length(append(keys, "len")...))
+		l := *g.Length(append(keys, "len")...)
 		rv.Set(reflect.MakeSlice(rv.Type(), l, l))
 		for i, l := 0, rv.Len(); i < l; i++ {
 			g.gen(rv.Index(i), append(keys, strconv.Itoa(i))...)
@@ -188,10 +183,6 @@ func Uint64(keys ...string) *uint64 {
 	return global.Uint64(keys...)
 }
 
-func NatualNumber(keys ...string) *int64 {
-	return global.NatualNumber(keys...)
-}
-
 func Length(keys ...string) *int {
 	return global.Length(keys...)
 }
@@ -221,6 +212,6 @@ func URL(keys ...string) *url.URL {
 	return global.URL(keys...)
 }
 
-func Any(dst interface{},keys ...string) interface{} {
+func Any(dst interface{}, keys ...string) interface{} {
 	return global.Any(dst, keys...)
 }

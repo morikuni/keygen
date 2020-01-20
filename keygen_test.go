@@ -27,17 +27,16 @@ func TestEquality(t *testing.T) {
 	cases := map[string]struct {
 		gen func(keys ...string) interface{}
 	}{
-		"Int":           {gen: func(keys ...string) interface{} { return Int(keys...) }},
-		"Int64":         {gen: func(keys ...string) interface{} { return Int64(keys...) }},
-		"Uint":          {gen: func(keys ...string) interface{} { return Uint(keys...) }},
-		"Uint64":        {gen: func(keys ...string) interface{} { return Uint64(keys...) }},
-		"Float64":       {gen: func(keys ...string) interface{} { return Float64(keys...) }},
-		"Float32":       {gen: func(keys ...string) interface{} { return Float32(keys...) }},
-		"NaturalNumber": {gen: func(keys ...string) interface{} { return NatualNumber(keys...) }},
-		"String":        {gen: func(keys ...string) interface{} { return String(keys...) }},
-		"Bool":          {gen: func(keys ...string) interface{} { return Bool(keys...) }},
-		"Time":          {gen: func(keys ...string) interface{} { return Time(keys...) }},
-		"URL":           {gen: func(keys ...string) interface{} { return URL(keys...) }},
+		"Int":     {gen: func(keys ...string) interface{} { return Int(keys...) }},
+		"Int64":   {gen: func(keys ...string) interface{} { return Int64(keys...) }},
+		"Uint":    {gen: func(keys ...string) interface{} { return Uint(keys...) }},
+		"Uint64":  {gen: func(keys ...string) interface{} { return Uint64(keys...) }},
+		"Float64": {gen: func(keys ...string) interface{} { return Float64(keys...) }},
+		"Float32": {gen: func(keys ...string) interface{} { return Float32(keys...) }},
+		"String":  {gen: func(keys ...string) interface{} { return String(keys...) }},
+		"Bool":    {gen: func(keys ...string) interface{} { return Bool(keys...) }},
+		"Time":    {gen: func(keys ...string) interface{} { return Time(keys...) }},
+		"URL":     {gen: func(keys ...string) interface{} { return URL(keys...) }},
 	}
 
 	for name, tc := range cases {
@@ -59,12 +58,6 @@ func TestRange(t *testing.T) {
 		gen      func(keys ...string) interface{}
 		validate func(v interface{}) bool
 	}{
-		"NatualNumber": {
-			gen: func(keys ...string) interface{} { return NatualNumber(keys...) },
-			validate: func(v interface{}) bool {
-				return *v.(*int64) > 0
-			},
-		},
 		"Time": {
 			gen: func(keys ...string) interface{} { return Time(keys...) },
 			validate: func(v interface{}) bool {

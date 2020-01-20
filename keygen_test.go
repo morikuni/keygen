@@ -37,6 +37,8 @@ func TestEquality(t *testing.T) {
 		"Bool":    {gen: func(keys ...string) interface{} { return Bool(keys...) }},
 		"Time":    {gen: func(keys ...string) interface{} { return Time(keys...) }},
 		"URL":     {gen: func(keys ...string) interface{} { return URL(keys...) }},
+		"Length":  {gen: func(keys ...string) interface{} { return Length(keys...) }},
+		"Any":     {gen: func(keys ...string) interface{} { return Any((*Object)(nil), keys...) }},
 	}
 
 	for name, tc := range cases {

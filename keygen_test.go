@@ -93,6 +93,7 @@ type Embed struct {
 	BoolP  *bool
 	String string
 }
+
 type Object struct {
 	Int     int
 	Uint    uint32
@@ -102,43 +103,58 @@ type Object struct {
 	Slice   []bool
 	Struct  Embed
 	StructP *Embed
+	Map     map[string]int64
 }
 
 func TestAny(t *testing.T) {
-	obj := *Any((*Object)(nil), "fill").(*Object)
+	obj := *Any((*Object)(nil), "object").(*Object)
 
-	Equal(t, *Int("fill", "int"), obj.Int)
-	Equal(t, uint32(*Uint("fill", "uint")), obj.Uint)
-	Equal(t, *Float64("fill", "float"), obj.Float)
-	Equal(t, *String("fill", "string"), obj.String)
+	Equal(t, *Int("object", "int"), obj.Int)
+	Equal(t, uint32(*Uint("object", "uint")), obj.Uint)
+	Equal(t, *Float64("object", "float"), obj.Float)
+	Equal(t, *String("object", "string"), obj.String)
+
 	Equal(t,
 		[5]int64{
-			*Int64("fill", "array", "0"),
-			*Int64("fill", "array", "1"),
-			*Int64("fill", "array", "2"),
-			*Int64("fill", "array", "3"),
-			*Int64("fill", "array", "4"),
+			*Int64("object", "array", "0"),
+			*Int64("object", "array", "1"),
+			*Int64("object", "array", "2"),
+			*Int64("object", "array", "3"),
+			*Int64("object", "array", "4"),
 		},
 		obj.Array,
 	)
-	Equal(t, *Length("fill", "slice", "len"), len(obj.Slice)) // this value == 4
+
+	Equal(t, *Length("object", "slice", "len"), len(obj.Slice)) // this value == 4
 	Equal(t,
 		[]bool{
-			*Bool("fill", "slice", "0"),
-			*Bool("fill", "slice", "1"),
-			*Bool("fill", "slice", "2"),
-			*Bool("fill", "slice", "3"),
+			*Bool("object", "slice", "0"),
+			*Bool("object", "slice", "1"),
+			*Bool("object", "slice", "2"),
+			*Bool("object", "slice", "3"),
 		},
 		obj.Slice,
 	)
-	Equal(t, *Bool("fill", "struct", "bool_p"), *obj.Struct.BoolP)
-	Equal(t, *String("fill", "struct", "string"), obj.Struct.String)
-	Equal(t, *Bool("fill", "struct_p", "bool_p"), *obj.StructP.BoolP)
-	Equal(t, *String("fill", "struct_p", "string"), obj.StructP.String)
+
+	Equal(t, *Bool("object", "struct", "bool_p"), *obj.Struct.BoolP)
+	Equal(t, *String("object", "struct", "string"), obj.Struct.String)
+	Equal(t, *Bool("object", "struct_p", "bool_p"), *obj.StructP.BoolP)
+	Equal(t, *String("object", "struct_p", "string"), obj.StructP.String)
+
+	Equal(t, *Length("object", "map", "len"), len(obj.Map)) // this value == 4
+	Equal(t,
+		map[string]int64{
+			*String("object", "map", "0", "key"): *Int64("object", "map", "0", "value"),
+			*String("object", "map", "1", "key"): *Int64("object", "map", "1", "value"),
+			*String("object", "map", "2", "key"): *Int64("object", "map", "2", "value"),
+			*String("object", "map", "3", "key"): *Int64("object", "map", "3", "value"),
+		},
+		obj.Map,
+	)
 }
 
 func BenchmarkAny(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = Any((*Object)(nil), "fill").(*Object)
+		_ = Any((*Object)(nil), "object").(*Object)
 	}
 }

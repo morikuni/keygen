@@ -155,6 +155,20 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 		for i, l := 0, rv.Len(); i < l; i++ {
 			g.gen(rv.Index(i), append(keys, strconv.Itoa(i))...)
 		}
+	case reflect.Map:
+		l := *g.Length(append(keys, "len")...)
+		t := rv.Type()
+		m := reflect.MakeMapWithSize(t, 100)
+		rv.Set(m)
+		keyT := t.Key()
+		valT := t.Elem()
+		for i, l := 0, l; i < l; i++ {
+			key := reflect.New(keyT).Elem()
+			val := reflect.New(valT).Elem()
+			g.gen(key, append(keys, strconv.Itoa(i), "key")...)
+			g.gen(val, append(keys, strconv.Itoa(i), "value")...)
+			rv.SetMapIndex(key, val)
+		}
 	case reflect.Struct:
 		rt := rv.Type()
 		for i, l := 0, rv.NumField(); i < l; i++ {
@@ -164,6 +178,8 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 	case reflect.Ptr:
 		rv.Set(reflect.New(rv.Type().Elem()))
 		g.gen(rv.Elem(), keys...)
+	default:
+		g.Reporter(fmt.Errorf("not supported kind: %v", rv.Kind().String()))
 	}
 }
 

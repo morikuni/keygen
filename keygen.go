@@ -167,8 +167,15 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 	case reflect.Struct:
 		rt := rv.Type()
 		for i, l := 0, rv.NumField(); i < l; i++ {
-			f := rt.Field(i)
-			t, err := structtag.Parse(string(f.Tag))
+			sf := rt.Field(i)
+			fv := rv.Field(i)
+
+			if !fv.CanSet() {
+				// unexported field.
+				continue
+			}
+
+			t, err := structtag.Parse(string(sf.Tag))
 			if err != nil {
 				g.Reporter(err)
 				return
@@ -176,12 +183,12 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 
 			tag, err := t.Get("gen")
 			if err != nil {
-				g.gen(rv.Field(i), append(keys, f.Name)...)
+				g.gen(fv, append(keys, sf.Name)...)
 				continue
 			}
 
 			if len(tag.Name) == 0 {
-				g.Reporter(fmt.Errorf("empty `gen` tag at %s", strings.Join(append(keys, f.Name), ".")))
+				g.Reporter(fmt.Errorf("empty `gen` tag at %s", strings.Join(append(keys, sf.Name), ".")))
 				return
 			}
 
@@ -189,7 +196,7 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 				continue
 			}
 
-			g.gen(rv.Field(i), append(keys, tag.Name)...)
+			g.gen(fv, append(keys, tag.Name)...)
 		}
 	case reflect.Ptr:
 		rv.Set(reflect.New(rv.Type().Elem()))

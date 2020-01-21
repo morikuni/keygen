@@ -2,6 +2,7 @@ package keygen
 
 import (
 	"net/url"
+	"reflect"
 	"time"
 )
 
@@ -10,13 +11,17 @@ func New() *Generator {
 		Reporter: func(err error) {
 			panic(err)
 		},
-		CustomGenerator: make(map[string]CustomGenerator),
+		CustomGenerators: make(map[string]CustomGenerator),
+		TypeGenerators:   make(map[reflect.Type]TypeGenerator),
 	}
 
-	gen.RegisterGenerator("int", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Int(keys...), nil })
-	gen.RegisterGenerator("uint", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Uint(keys...), nil })
-	gen.RegisterGenerator("bool", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Bool(keys...), nil })
-	gen.RegisterGenerator("float", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Float64(keys...), nil })
+	gen.RegisterCustomGenerator("int", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Int(keys...), nil })
+	gen.RegisterCustomGenerator("uint", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Uint(keys...), nil })
+	gen.RegisterCustomGenerator("bool", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Bool(keys...), nil })
+	gen.RegisterCustomGenerator("float", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Float64(keys...), nil })
+
+	gen.RegisterTypeGenerator((*time.Time)(nil), func(g *Generator, keys []string) (interface{}, error) { return *g.Time(keys...), nil })
+	gen.RegisterTypeGenerator((*url.URL)(nil), func(g *Generator, keys []string) (interface{}, error) { return *g.URL(keys...), nil })
 
 	return gen
 }

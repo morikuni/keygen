@@ -8,13 +8,13 @@ import (
 
 type CustomGenerator func(g *Generator, args []string, keys []string) (interface{}, error)
 
-func (g *Generator) RegisterGenerator(name string, gen CustomGenerator) {
-	if _, ok := g.CustomGenerator[name]; ok {
+func (g *Generator) RegisterCustomGenerator(name string, gen CustomGenerator) {
+	if _, ok := g.CustomGenerators[name]; ok {
 		g.Reporter(fmt.Errorf("name %q is already registered", name))
 		return
 	}
 
-	g.CustomGenerator[name] = gen
+	g.CustomGenerators[name] = gen
 }
 
 func (g *Generator) genCustom(rv reflect.Value, rt reflect.Type, args []string, keys []string) {
@@ -25,7 +25,7 @@ func (g *Generator) genCustom(rv reflect.Value, rt reflect.Type, args []string, 
 
 	name, args := args[0], args[1:]
 
-	gen, ok := g.CustomGenerator[name]
+	gen, ok := g.CustomGenerators[name]
 	if !ok {
 		g.Reporter(fmt.Errorf("generator %q is not found", name))
 		return
@@ -53,4 +53,24 @@ func (g *Generator) genCustom(rv reflect.Value, rt reflect.Type, args []string, 
 
 	rv.Set(vv.Convert(rt))
 	return
+}
+
+type TypeGenerator func(g *Generator, keys []string) (interface{}, error)
+
+func actualType(rt reflect.Type) reflect.Type {
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+	}
+	return rt
+}
+
+func (g *Generator) RegisterTypeGenerator(t interface{}, gen TypeGenerator) {
+	rt := actualType(reflect.TypeOf(t))
+
+	if _, ok := g.TypeGenerators[rt]; ok {
+		g.Reporter(fmt.Errorf("type %q is already registered", rt.String()))
+		return
+	}
+
+	g.TypeGenerators[rt] = gen
 }

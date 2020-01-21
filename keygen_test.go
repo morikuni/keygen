@@ -107,7 +107,12 @@ type Object struct {
 	StructP   *Embed
 	Map       map[string]int64
 	IntString string `gen:",int"`
+	Time      time.Time
+	TimePP    **time.Time `gen:"time_pp"`
+	TypedInt  TypedInt
 }
+
+type TypedInt int
 
 func TestAny(t *testing.T) {
 	obj := *Any((*Object)(nil), "object").(*Object)
@@ -154,6 +159,11 @@ func TestAny(t *testing.T) {
 	)
 
 	Equal(t, strconv.Itoa(*Int("object", "IntString")), obj.IntString)
+
+	Equal(t, *Time("object", "Time"), obj.Time)
+	Equal(t, *Time("object", "time_pp"), **obj.TimePP)
+
+	Equal(t, *Int("object", "TypedInt"), int(obj.TypedInt))
 }
 
 func BenchmarkAny(b *testing.B) {

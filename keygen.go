@@ -39,8 +39,9 @@ func hash(keys []string) [32]byte {
 }
 
 type Generator struct {
-	Reporter        func(err error)
-	CustomGenerator map[string]CustomGenerator
+	Reporter         func(err error)
+	CustomGenerators map[string]CustomGenerator
+	TypeGenerators   map[reflect.Type]TypeGenerator
 }
 
 func (g *Generator) Int(keys ...string) *int {
@@ -94,17 +95,17 @@ func (g *Generator) Float32(keys ...string) *float32 {
 // Time returns random time between 2009-11-10 23:00:00 and 2030-01-01 00:00:00.
 func (g *Generator) Time(keys ...string) *time.Time {
 	t := time.Unix(
-		int64(*Uint64(keys...)%uint64(176545*time.Hour/time.Second)+1257894000),
-		int64(*Uint64(keys...)%uint64(time.Second)),
+		int64(*g.Uint64(keys...)%uint64(176545*time.Hour/time.Second)+1257894000),
+		int64(*g.Uint64(keys...)%uint64(time.Second)),
 	)
 	return &t
 }
 
 func (g *Generator) URL(keys ...string) *url.URL {
 	u, err := url.Parse(fmt.Sprintf("%s://%s/%s",
-		[]string{"https", "http"}[*Uint(keys...)%2],
-		*String(append(keys, "host")...)+[]string{".com", ".org", ".net"}[*Uint(keys...)%3],
-		*String(append(keys, "path")...),
+		[]string{"https", "http"}[*g.Uint(keys...)%2],
+		*g.String(append(keys, "host")...)+[]string{".com", ".org", ".net"}[*g.Uint(keys...)%3],
+		*g.String(append(keys, "path")...),
 	))
 	if err != nil {
 		g.Reporter(err)
@@ -121,6 +122,19 @@ func (g *Generator) Any(dst interface{}, keys ...string) interface{} {
 }
 
 func (g *Generator) gen(rv reflect.Value, keys ...string) {
+	rt := rv.Type()
+
+	if gen, ok := g.TypeGenerators[rt]; ok {
+		v, err := gen(g, keys)
+		if err != nil {
+			g.Reporter(err)
+			return
+		}
+		vv := reflect.ValueOf(v)
+		rv.Set(vv)
+		return
+	}
+
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		rv.SetInt(*g.Int64(keys...))
@@ -138,17 +152,16 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 		}
 	case reflect.Slice:
 		l := *g.Length(append(keys, "len")...)
-		rv.Set(reflect.MakeSlice(rv.Type(), l, l))
+		rv.Set(reflect.MakeSlice(rt, l, l))
 		for i, l := 0, rv.Len(); i < l; i++ {
 			g.gen(rv.Index(i), append(keys, strconv.Itoa(i))...)
 		}
 	case reflect.Map:
 		l := *g.Length(append(keys, "len")...)
-		t := rv.Type()
-		m := reflect.MakeMapWithSize(t, 100)
+		m := reflect.MakeMapWithSize(rt, 100)
 		rv.Set(m)
-		keyT := t.Key()
-		valT := t.Elem()
+		keyT := rt.Key()
+		valT := rt.Elem()
 		for i, l := 0, l; i < l; i++ {
 			key := reflect.New(keyT).Elem()
 			val := reflect.New(valT).Elem()
@@ -157,7 +170,6 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 			rv.SetMapIndex(key, val)
 		}
 	case reflect.Struct:
-		rt := rv.Type()
 		for i, l := 0, rv.NumField(); i < l; i++ {
 			sf := rt.Field(i)
 			fv := rv.Field(i)
@@ -197,7 +209,7 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 			g.genCustom(fv, sf.Type, tag.Options, append(keys, name))
 		}
 	case reflect.Ptr:
-		rv.Set(reflect.New(rv.Type().Elem()))
+		rv.Set(reflect.New(rt.Elem()))
 		g.gen(rv.Elem(), keys...)
 	default:
 		g.Reporter(fmt.Errorf("not supported kind: %v", rv.Kind().String()))

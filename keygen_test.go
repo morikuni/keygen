@@ -93,7 +93,7 @@ func TestRange(t *testing.T) {
 
 type Embed struct {
 	BoolP  *bool
-	String string
+	String string `gen:"custom_name"`
 }
 
 type Object struct {
@@ -137,9 +137,9 @@ func TestAny(t *testing.T) {
 	)
 
 	Equal(t, *Bool("object", "Struct", "BoolP"), *obj.Struct.BoolP)
-	Equal(t, *String("object", "Struct", "String"), obj.Struct.String)
+	Equal(t, *String("object", "Struct", "custom_name"), obj.Struct.String)
 	Equal(t, *Bool("object", "StructP", "BoolP"), *obj.StructP.BoolP)
-	Equal(t, *String("object", "StructP", "String"), obj.StructP.String)
+	Equal(t, *String("object", "StructP", "custom_name"), obj.StructP.String)
 
 	Equal(t, *Length("object", "Map", "len"), len(obj.Map)) // this value == 4
 	Equal(t,

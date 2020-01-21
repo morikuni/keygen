@@ -7,8 +7,10 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/fatih/structtag"
 	"github.com/minio/highwayhash"
 )
 
@@ -121,12 +123,6 @@ func (g *Generator) URL(keys ...string) *url.URL {
 
 func (g *Generator) Any(dst interface{}, keys ...string) interface{} {
 	rv := reflect.New(reflect.TypeOf(dst).Elem())
-
-	if rv.Kind() != reflect.Ptr {
-		g.Reporter(fmt.Errorf("dst should be pointer but %T", dst))
-		return nil
-	}
-
 	g.gen(rv.Elem(), keys...)
 
 	return rv.Interface()
@@ -172,7 +168,28 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 		rt := rv.Type()
 		for i, l := 0, rv.NumField(); i < l; i++ {
 			f := rt.Field(i)
-			g.gen(rv.Field(i), append(keys, f.Name)...)
+			t, err := structtag.Parse(string(f.Tag))
+			if err != nil {
+				g.Reporter(err)
+				return
+			}
+
+			tag, err := t.Get("gen")
+			if err != nil {
+				g.gen(rv.Field(i), append(keys, f.Name)...)
+				continue
+			}
+
+			if len(tag.Name) == 0 {
+				g.Reporter(fmt.Errorf("empty `gen` tag at %s", strings.Join(append(keys, f.Name), ".")))
+				return
+			}
+
+			if tag.Name == "-" {
+				continue
+			}
+
+			g.gen(rv.Field(i), append(keys, tag.Name)...)
 		}
 	case reflect.Ptr:
 		rv.Set(reflect.New(rv.Type().Elem()))

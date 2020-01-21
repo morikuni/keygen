@@ -6,9 +6,19 @@ import (
 )
 
 func New() *Generator {
-	return &Generator{Reporter: func(err error) {
-		panic(err)
-	}}
+	gen := &Generator{
+		Reporter: func(err error) {
+			panic(err)
+		},
+		CustomGenerator: make(map[string]CustomGenerator),
+	}
+
+	gen.RegisterGenerator("int", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Int(keys...), nil })
+	gen.RegisterGenerator("uint", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Uint(keys...), nil })
+	gen.RegisterGenerator("bool", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Bool(keys...), nil })
+	gen.RegisterGenerator("float", func(g *Generator, args []string, keys []string) (interface{}, error) { return *g.Float64(keys...), nil })
+
+	return gen
 }
 
 var global = New()

@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/fatih/structtag"
@@ -40,7 +39,8 @@ func hash(keys []string) [32]byte {
 }
 
 type Generator struct {
-	Reporter func(err error)
+	Reporter        func(err error)
+	CustomGenerator map[string]CustomGenerator
 }
 
 func (g *Generator) Int(keys ...string) *int {
@@ -179,16 +179,22 @@ func (g *Generator) gen(rv reflect.Value, keys ...string) {
 				continue
 			}
 
-			if len(tag.Name) == 0 {
-				g.Reporter(fmt.Errorf("empty `gen` tag at %s", strings.Join(append(keys, sf.Name), ".")))
-				return
-			}
-
 			if tag.Name == "-" {
 				continue
 			}
 
-			g.gen(fv, append(keys, tag.Name)...)
+			name := sf.Name
+			if len(tag.Name) != 0 {
+				// allowing empty tag name, enable to use custom generator without custom name.
+				name = tag.Name
+			}
+
+			if len(tag.Options) == 0 {
+				g.gen(fv, append(keys, name)...)
+				continue
+			}
+
+			g.genCustom(fv, sf.Type, tag.Options, append(keys, name))
 		}
 	case reflect.Ptr:
 		rv.Set(reflect.New(rv.Type().Elem()))

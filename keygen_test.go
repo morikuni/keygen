@@ -97,15 +97,16 @@ type Embed struct {
 }
 
 type Object struct {
-	Int     int
-	Uint    uint32
-	Float   float64
-	String  string
-	Array   [5]int64
-	Slice   []bool
-	Struct  Embed
-	StructP *Embed
-	Map     map[string]int64
+	Int       int
+	Uint      uint32
+	Float     float64
+	String    string
+	Array     [5]int64
+	Slice     []bool
+	Struct    Embed
+	StructP   *Embed
+	Map       map[string]int64
+	IntString string `gen:",int"`
 }
 
 func TestAny(t *testing.T) {
@@ -151,6 +152,8 @@ func TestAny(t *testing.T) {
 		},
 		obj.Map,
 	)
+
+	Equal(t, strconv.Itoa(*Int("object", "IntString")), obj.IntString)
 }
 
 func BenchmarkAny(b *testing.B) {
